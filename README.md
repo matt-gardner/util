@@ -20,6 +20,9 @@ here because it just worked better with all of the things I wanted to test.
 
 - Beginning to add tests for FileUtil and FakeFileUtil.
 
+- (Planned) Allow for parallel processing of files, where we can do some kind of map or flatMap for
+  each line in the file, without having to read the whole file into memory first.
+
 ## Version 1.1:
 
 - Added my SpecFileReader and JsonHelper, classes that deal with reading specification files in a
