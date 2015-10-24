@@ -9,7 +9,6 @@ import scala.io.Source
 class FakeFileUtil extends FileUtil {
 
   private val existingPaths = new mutable.HashSet[String]
-  private val doubleList = new mutable.ArrayBuffer[Double]
   private val expectedFileContents = new mutable.HashMap[String, String]
   private val fileWriters = new mutable.HashMap[String, FakeFileWriter]
   private val readerFileContents = new mutable.HashMap[String, String]
@@ -36,14 +35,12 @@ class FakeFileUtil extends FileUtil {
     Source.fromString(getFileContents(filename)).getLines
 
   override def getLineIterator(file: File) =
-    Source.fromString(getFileContents(file.getName)).getLines
-
-  override def readDoubleListFromFile(filename: String) = doubleList
+    Source.fromString(getFileContents(file.getAbsolutePath)).getLines
 
   override def listDirectoryContents(dirname: String) = {
     val fixed = if (dirname.endsWith("/")) dirname.substring(0, dirname.length() - 1) else dirname
     allFiles.filter(file => {
-      new File(file).getParent().equals(dirname)
+      new File(file).getParent().equals(fixed)
     }).toSeq
   }
 
@@ -99,11 +96,6 @@ class FakeFileUtil extends FileUtil {
 
   def addExistingFile(path: String) {
     existingPaths.add(path)
-  }
-
-  def setDoubleList(_doubleList: Seq[Double]) {
-    doubleList.clear()
-    doubleList.appendAll(_doubleList)
   }
 
   /**
