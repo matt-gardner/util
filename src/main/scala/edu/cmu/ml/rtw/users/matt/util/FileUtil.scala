@@ -58,7 +58,10 @@ class FileUtil {
   }
 
   def listDirectoryContents(filename: String): Seq[String] = {
-    new File(filename).listFiles() match {
+    val file = new File(filename)
+    if (!file.exists()) throw new RuntimeException(s"$filename does not exist")
+    if (!file.isDirectory()) throw new RuntimeException(s"$filename is not a directory")
+    file.listFiles() match {
       case empty if (empty == null) => Seq()
       case contents => contents.map(_.getName())
     }
@@ -75,7 +78,12 @@ class FileUtil {
   }
 
   def touchFile(filename: String) {
-    new File(filename).createNewFile()
+    val file = new File(filename)
+    if (file.exists()) {
+      file.setLastModified(System.currentTimeMillis)
+    } else {
+      file.createNewFile()
+    }
   }
 
   def deleteFile(filename: String) {
@@ -84,8 +92,8 @@ class FileUtil {
 
   def getFileWriter(filename: String, append: Boolean = false) = new FileWriter(filename, append)
 
-  def writeLinesToFile(filename: String, lines: Seq[String]) {
-    val writer = getFileWriter(filename)
+  def writeLinesToFile(filename: String, lines: Seq[String], append: Boolean = false) {
+    val writer = getFileWriter(filename, append)
     for (line <- lines) {
       writer.write(line)
       writer.write("\n")
@@ -93,8 +101,8 @@ class FileUtil {
     writer.close()
   }
 
-  def writeContentsToFile(filename: String, contents: String) {
-    val writer = getFileWriter(filename)
+  def writeContentsToFile(filename: String, contents: String, append: Boolean = false) {
+    val writer = getFileWriter(filename, append)
     writer.write(contents)
     writer.close()
   }
@@ -124,6 +132,21 @@ class FileUtil {
     getLineIterator(filename).flatMap(function).toSeq
   }
 
+  val _chunkSize = 128 * 1024
+  def parMapLinesFromFile[T](filename: String, function: String => T, chunkSize: Int = _chunkSize): Seq[T] = {
+    val iterator = getLineIterator(filename).grouped(chunkSize)
+    iterator.flatMap(lines => {
+      lines.par.map(function).seq
+    }).toSeq
+  }
+
+  def parFlatMapLinesFromFile[T](filename: String, function: String => Seq[T], chunkSize: Int = _chunkSize): Seq[T] = {
+    val iterator = getLineIterator(filename).grouped(chunkSize)
+    iterator.flatMap(lines => {
+      lines.par.flatMap(function).seq
+    }).toSeq
+  }
+
   def readStringPairsFromFile(filename: String): Seq[(String, String)] = {
     val f = (line: String) => {
       val fields = line.split("\t")
@@ -144,7 +167,7 @@ class FileUtil {
           Seq[(String, String)]()
         } else {
           println(s"Offending line: $line")
-          throw new RuntimeException("readStringPairsFromReader called on file that didn't have two columns")
+          throw new RuntimeException("readMapFromTsvFile called on file that didn't have two columns")
         }
       } else {
         Seq((fields(0), fields(1)))
@@ -270,8 +293,8 @@ class FileUtil {
   def copy(from: String, to: String) {
     Files.copy(new File(from).toPath(), new File(to).toPath())
   }
+}
 
-  trait LineFilter {
-    def filter(fields: Array[String]): Boolean
-  }
+trait LineFilter {
+  def filter(fields: Array[String]): Boolean
 }

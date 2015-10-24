@@ -1,10 +1,7 @@
 package edu.cmu.ml.rtw.users.matt.util
 
-import java.io.BufferedReader
 import java.io.File
-import java.io.FileWriter
 import java.io.IOException
-import java.io.StringReader
 
 import scala.collection.mutable
 import scala.io.Source
