@@ -1,8 +1,5 @@
 package edu.cmu.ml.rtw.users.matt.util
 
-import edu.cmu.ml.rtw.users.matt.util.FakeFileUtil
-import edu.cmu.ml.rtw.users.matt.util.Vector
-
 import org.scalatest._
 
 import org.json4s._

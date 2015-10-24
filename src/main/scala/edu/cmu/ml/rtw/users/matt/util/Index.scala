@@ -107,15 +107,10 @@ class Index[T >: Null](factory: ObjectParser[T], verbose: Boolean = false, fileU
   }
 
   def setFromFile(filename: String) {
-    setFromReader(fileUtil.getBufferedReader(filename))
-  }
-
-  def setFromReader(reader: BufferedReader) {
     map.clear()
     reverse_map.clear()
-    var line: String = null
     var max_index = 0
-    while ({ line = reader.readLine(); line != null }) {
+    for (line <- fileUtil.getLineIterator(filename)) {
       val parts = line.split("\t")
       val num = parts(0).toInt
       if (num > max_index) {

@@ -10,11 +10,11 @@ class SpecFileReader(baseDir: String, fileUtil: FileUtil = new FileUtil()) {
   implicit val formats = DefaultFormats
 
   def readSpecFile(file: java.io.File): JValue = {
-    readSpecFile(fileUtil.readLinesFromFile(file).asScala)
+    readSpecFile(fileUtil.readLinesFromFile(file))
   }
 
   def readSpecFile(filename: String): JValue = {
-    readSpecFile(fileUtil.readLinesFromFile(filename).asScala)
+    readSpecFile(fileUtil.readLinesFromFile(filename))
   }
 
   def readSpecFile(lines: Seq[String]): JValue = {

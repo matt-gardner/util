@@ -2,20 +2,17 @@ organization := "edu.cmu.ml.rtw"
 
 name := "matt-util"
 
-version := "1.1"
+version := "1.2-SNAPSHOT"
 
 scalaVersion := "2.11.2"
 
 scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature")
 
-javacOptions ++= Seq("-Xlint:unchecked", "-source", "1.7", "-target", "1.7")
+javacOptions ++= Seq("-Xlint:unchecked")
 
 crossScalaVersions := Seq("2.11.2", "2.10.3")
 
 libraryDependencies ++= Seq(
-  // scalax.io.Resource
-  "com.github.scala-incubator.io" %% "scala-io-core" % "0.4.3",
-  "com.github.scala-incubator.io" %% "scala-io-file" % "0.4.3",
   // Java utility libraries (collections, option parsing, such things)
   "com.google.guava" % "guava" % "17.0",
   "log4j" % "log4j" % "1.2.16",
