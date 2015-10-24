@@ -18,10 +18,10 @@ here because it just worked better with all of the things I wanted to test.
   code upgrading to this version of the library will likely have to change code, to remove asScala
 (or add asJava, but why?) when interacting with FileUtil.
 
-- (Planned) Added tests for FileUtil and FakeFileUtil.
-
-- (Planned) Allow for parallel processing of files, where we can do some kind of map or flatMap for
+- Allows for parallel processing of files, where we can do some kind of map or flatMap for
   each line in the file, without having to read the whole file into memory first.
+
+- (Planned) Added tests for FileUtil and FakeFileUtil.
 
 ## Version 1.1:
 
