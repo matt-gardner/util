@@ -12,7 +12,7 @@ here because it just worked better with all of the things I wanted to test.
 
 # Change log
 
-## Version 1.2 (current snapshot):
+## Version 1.2:
 
 - Moved FileUtil from java to scala, including moving to scala collections.  This will mean any
   code upgrading to this version of the library will likely have to change code, to remove asScala
@@ -21,7 +21,7 @@ here because it just worked better with all of the things I wanted to test.
 - Allows for parallel processing of files, where we can do some kind of map or flatMap for
   each line in the file, without having to read the whole file into memory first.
 
-- (Planned) Added tests for FileUtil and FakeFileUtil.
+- Added tests for FileUtil and FakeFileUtil.
 
 ## Version 1.1:
 
