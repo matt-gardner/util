@@ -39,8 +39,12 @@ class FakeFileUtil extends FileUtil {
 
   override def listDirectoryContents(dirname: String) = {
     val fixed = if (dirname.endsWith("/")) dirname.substring(0, dirname.length() - 1) else dirname
-    allFiles.filter(file => {
-      new File(file).getParent().equals(fixed)
+    allFiles.flatMap(file => {
+      if (new File(file).getParent().equals(fixed)) {
+        Seq(file.replaceFirst(dirname, ""))
+      } else {
+        Seq[String]()
+      }
     }).toSeq
   }
 

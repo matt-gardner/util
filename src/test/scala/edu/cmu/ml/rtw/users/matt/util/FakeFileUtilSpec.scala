@@ -60,11 +60,12 @@ class FakeFileUtilSpec extends FlatSpecLike with Matchers {
     val fileUtil = new FakeFileUtil()
     val dir = "/dir/"
     val files = (1 to 5).map(i => dir + "file_" + i).toSeq
+    val expectedFiles = (1 to 5).map(i => "file_" + i).toSeq
     files.foreach(file => fileUtil.addExistingFile(file))
     val contents = fileUtil.listDirectoryContents(dir)
     contents.size should be(files.size)
     // For some reason contents should contain only(files) and allOf(files) aren't working...
-    files.foreach(file => contents should contain(file))
+    expectedFiles.foreach(file => contents should contain(file))
   }
 
   "expectFilesWritten" should "do nothing if the right files have all been written" in {
