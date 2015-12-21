@@ -45,7 +45,10 @@ class FileUtilSpec extends FlatSpecLike with Matchers {
   }
 
   it should "return an empty list if there is no directory contents" in {
-    fileUtil.listDirectoryContents("src/test/resources/directory_test/test1/").size should be(0)
+    val dir = "src/test/resources/tmpdir/"
+    fileUtil.mkdirOrDie(dir)
+    fileUtil.listDirectoryContents(dir).size should be(0)
+    new File(dir).delete()
   }
 
   it should "throw an error when the given file is not a directory" in {
@@ -68,9 +71,10 @@ class FileUtilSpec extends FlatSpecLike with Matchers {
     val dir = "src/test/resources/directory_test/"
     val regex = "".r
     val contents = fileUtil.recursiveListFiles(new File(dir), regex).map(_.getPath)
-    contents.size should be(7)
+    contents.size should be(8)
     contents should contain allOf(
       "src/test/resources/directory_test/test1",
+      "src/test/resources/directory_test/test1/README.md",
       "src/test/resources/directory_test/test2",
       "src/test/resources/directory_test/test2/recursive_test",
       "src/test/resources/directory_test/test2/recursive_test/file3.test",

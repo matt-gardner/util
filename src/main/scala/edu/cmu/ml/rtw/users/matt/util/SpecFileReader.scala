@@ -78,6 +78,27 @@ object JsonHelper {
     }
   }
 
+  def extractOption[T](params: JValue, key: String, options: Seq[T])(implicit m: Manifest[T]): T = {
+    checkOption((params \ key).extract[T], options)
+  }
+
+  def extractOptionWithDefault[T](
+    params: JValue,
+    key: String,
+    options: Seq[T],
+    default: T
+  )(implicit m: Manifest[T]): T = {
+    val parsed = extractWithDefault(params, key, default)
+    checkOption(parsed, options)
+  }
+
+  def checkOption[T](value: T, options: Seq[T]) = {
+    if (options.contains(value))
+      value
+    else
+      throw new IllegalStateException(s"parameter ${value} was not a member of ${options}")
+  }
+
   def getPathOrNameOrNull(params: JValue, key: String, baseDir: String, nameDir: String): String = {
     (params \ key) match {
       case JNothing => null
