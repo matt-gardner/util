@@ -12,6 +12,15 @@ here because it just worked better with all of the things I wanted to test.
 
 # Change log
 
+## Version 1.2.2:
+
+- Improved the Index/Dictionary API, so you can have a non-mutable (and thus much more efficient)
+  Dictionary.
+
+## Version 1.2.1:
+
+- Added the ability to enforce a set of options to JsonHelper, plus a minor test fix.
+
 ## Version 1.2:
 
 - Moved FileUtil from java to scala, including moving to scala collections.  This will mean any

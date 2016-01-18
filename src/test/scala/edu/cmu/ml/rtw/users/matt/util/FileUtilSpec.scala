@@ -270,7 +270,7 @@ class FileUtilSpec extends FlatSpecLike with Matchers {
     val lines = Seq("val1", "val2", "val3", "val2", "val3")
     val file = "src/test/resources/test_read_integer_set.txt"
     fileUtil.writeLinesToFile(file, lines)
-    val dict = new Dictionary()
+    val dict = new MutableConcurrentDictionary()
     dict.getIndex("fake1")
     dict.getIndex("fake2")
     val set = fileUtil.readIntegerSetFromFile(file, dict)
@@ -292,7 +292,7 @@ class FileUtilSpec extends FlatSpecLike with Matchers {
     val lines = Seq("val1", "val2", "val3")
     val file = "src/test/resources/test_read_integer_list.txt"
     fileUtil.writeLinesToFile(file, lines)
-    val dict = new Dictionary()
+    val dict = new MutableConcurrentDictionary()
     dict.getIndex("fake1")
     dict.getIndex("val3")
     dict.getIndex("fake2")

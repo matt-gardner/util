@@ -2,7 +2,7 @@ organization := "edu.cmu.ml.rtw"
 
 name := "matt-util"
 
-version := "1.2"
+version := "1.2.2"
 
 scalaVersion := "2.11.2"
 

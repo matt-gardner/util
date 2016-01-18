@@ -15,7 +15,58 @@ import java.util.concurrent.atomic.AtomicInteger
  * (generally because working with integers is much faster and less memory-intensive than working
  * with objects).
  */
-class Index[T >: Null](factory: ObjectParser[T], verbose: Boolean = false, fileUtil: FileUtil = new FileUtil) {
+trait Index[T >: Null] {
+  def hasKey(key: T): Boolean
+  def getIndex(key: T): Int
+  def getKey(index: Int): T
+  def size(): Int
+
+  def writeToFile(filename: String)
+
+  def writeToWriter(writer: FileWriter) {
+    if (size() > 20000000) {
+      // This is approaching the size of something that can't fit in a String object, so we
+      // have to write it directly to disk, not use the printToString() method.
+      var builder = new StringBuilder()
+      for (i <- 1 until size()) {
+        if (i % 1000000 == 0) {
+          writer.write(builder.toString())
+          builder = new StringBuilder()
+        }
+        builder.append(i)
+        builder.append("\t")
+        builder.append(getKey(i).toString())
+        builder.append("\n")
+      }
+      writer.write(builder.toString())
+    } else {
+      writer.write(printToString())
+    }
+    writer.close()
+  }
+
+  def printToString(): String = {
+    val builder = new StringBuilder()
+    for (i <- 1 until size) {
+      builder.append(i)
+      builder.append("\t")
+      val key = getKey(i)
+      if (key == null) {
+        builder.append("__@NULL KEY@__")
+      } else {
+        builder.append(key.toString())
+      }
+      builder.append("\n")
+    }
+    return builder.toString()
+  }
+}
+
+class MutableConcurrentIndex[T >: Null](
+  factory: ObjectParser[T],
+  verbose: Boolean = false,
+  fileUtil: FileUtil = new FileUtil
+) extends Index[T] {
   val map = new concurrent.TrieMap[T, Int]
   val reverse_map = new concurrent.TrieMap[Int, T]
   val nextIndex = new AtomicInteger(1)
@@ -23,12 +74,12 @@ class Index[T >: Null](factory: ObjectParser[T], verbose: Boolean = false, fileU
   /**
    * Test if key is already in the dictionary
    */
-  def hasKey(key: T): Boolean = map.contains(key)
+  override def hasKey(key: T): Boolean = map.contains(key)
 
   /**
    * Returns the index for key, adding to the dictionary if necessary.
    */
-  def getIndex(key: T): Int = {
+  override def getIndex(key: T): Int = {
     if (key == null) {
       throw new RuntimeException("A null key was passed to the dictionary!")
     }
@@ -61,12 +112,17 @@ class Index[T >: Null](factory: ObjectParser[T], verbose: Boolean = false, fileU
     }
   }
 
+  override def size() = getNextIndex()
+  override def writeToFile(filename: String) {
+    writeToWriter(fileUtil.getFileWriter(filename))
+  }
+
   // I don't like this!  But I'm not sure how else to guarantee that this actually works right.  I
   // need the put in the map and the reverse_map to happen atomically, but I don't know how to do
   // that.  So instead, we just take this hit here...
   def ensureReverseIsPresent(i: Int) = while (reverse_map.getOrElse(i, null) == null) Thread.sleep(1)
 
-  def getKey(index: Int): T = {
+  override def getKey(index: Int): T = {
     val key = reverse_map.getOrElse(index, null)
     if (verbose) println(s"Key for ${index}: ${key}\n")
     key
@@ -78,32 +134,6 @@ class Index[T >: Null](factory: ObjectParser[T], verbose: Boolean = false, fileU
     map.clear()
     reverse_map.clear()
     nextIndex.set(1)
-  }
-
-  def writeToFile(filename: String) {
-    writeToWriter(fileUtil.getFileWriter(filename))
-  }
-
-  def writeToWriter(writer: FileWriter) {
-    if (nextIndex.get() > 20000000) {
-      // This is approaching the size of something that can't fit in a String object, so we
-      // have to write it directly to disk, not use the printToString() method.
-      var builder = new StringBuilder()
-      for (i <- 1 until nextIndex.get()) {
-        if (i % 1000000 == 0) {
-          writer.write(builder.toString())
-          builder = new StringBuilder()
-        }
-        builder.append(i)
-        builder.append("\t")
-        builder.append(getKey(i).toString())
-        builder.append("\n")
-      }
-      writer.write(builder.toString())
-    } else {
-      writer.write(printToString())
-    }
-    writer.close()
   }
 
   def setFromFile(filename: String) {
@@ -122,20 +152,49 @@ class Index[T >: Null](factory: ObjectParser[T], verbose: Boolean = false, fileU
     }
     nextIndex.set(max_index+1)
   }
+}
 
-  def printToString(): String = {
-    val builder = new StringBuilder()
-    for (i <- 1 until nextIndex.get()) {
-      builder.append(i)
-      builder.append("\t")
-      val key = getKey(i)
-      if (key == null) {
-        builder.append("__@NULL KEY@__")
-      } else {
-        builder.append(key.toString())
+class ImmutableIndex[T >: Null](
+  indices: Map[T, Int],
+  entries: Array[T],
+  fileUtil: FileUtil = new FileUtil
+) extends Index[T] {
+  override def hasKey(key: T): Boolean = indices.contains(key)
+  override def getIndex(key: T): Int = indices(key)
+  override def getKey(index: Int): T = entries(index)
+  override def size() = entries.size
+  override def writeToFile(filename: String) {
+    writeToWriter(fileUtil.getFileWriter(filename))
+  }
+}
+
+object ImmutableIndex {
+  def instance[T >: Null](
+    indices: Map[T, Int],
+    entries: Array[T],
+    fileUtil: FileUtil
+  ): ImmutableIndex[T] = {
+    new ImmutableIndex(indices, entries, fileUtil)
+  }
+
+  def readFromFile[T >: Null, R <: ImmutableIndex[T]](
+    filename: String,
+    factory: ObjectParser[T],
+    createInstance: (Map[T, Int], Array[T], FileUtil) => R,
+    fileUtil: FileUtil = new FileUtil
+  )(implicit tag: reflect.ClassTag[T]): R = {
+    val indices = new mutable.HashMap[T, Int]
+    val entries = new mutable.ArrayBuffer[T]
+    for (line <- fileUtil.getLineIterator(filename)) {
+      val parts = line.split("\t")
+      val num = parts(0).toInt
+      val key = factory.fromString(parts(1))
+      indices.put(key, num)
+      while (num > entries.size) {
+        entries += null
       }
-      builder.append("\n")
+      entries += key
     }
-    return builder.toString()
+    createInstance(indices.toMap, entries.toArray, fileUtil)
   }
 }
