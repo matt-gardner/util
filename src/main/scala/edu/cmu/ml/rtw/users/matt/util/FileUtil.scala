@@ -126,6 +126,16 @@ class FileUtil {
   def getLineIterator[T](file: File, f: String => T): Iterator[T] = getLineIterator(file).map(f)
   def getLineIterator[T](stream: InputStream, f: String => T): Iterator[T] = getLineIterator(stream).map(f)
 
+  def processFile(filename: String, f: String => Unit): Unit = processFile(getLineIterator(filename), f)
+  def processFile(file: File, f: String => Unit): Unit = processFile(getLineIterator(file), f)
+  def processFile(stream: InputStream, f: String => Unit): Unit = processFile(getLineIterator(stream), f)
+
+  def processFile(iterator: Iterator[String], f: String => Unit): Unit = {
+    for (line <- iterator) {
+      f(line)
+    }
+  }
+
   def readLinesFromFile(filename: String) = getLineIterator(filename).toSeq
   def readLinesFromFile(file: File) = getLineIterator(file).toSeq
   def readLinesFromBZ2File(filename: String) = getLineIterator(
@@ -270,7 +280,12 @@ class FileUtil {
     mapLinesFromFile(filename, f)
   }
 
-  def intTripleFromLine(line: String): (Int, Int, Int) = {
+  // These two methods are fancy, but it turns out they still create boxed Integers...  So if you
+  // really need to avoid object creation, you should just copy and paste the parsing code into a
+  // function passed directly to processFile.
+  def returnTriple(i: Int, j: Int, k: Int) = (i, j, k)
+
+  def intTripleFromLine[T](line: String, f: (Int, Int, Int) => T = returnTriple _): T = {
     var int1, int2, int3 = 0
     var i = 0
     while (line.charAt(i) != '\t') {
@@ -290,7 +305,7 @@ class FileUtil {
       int3 += line.charAt(i) - 48
       i += 1
     }
-    (int1, int2, int3)
+    f(int1, int2, int3)
   }
 
   def fileExists(path: String): Boolean = {

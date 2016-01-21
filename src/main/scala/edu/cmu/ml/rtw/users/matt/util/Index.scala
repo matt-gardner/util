@@ -192,20 +192,33 @@ object ImmutableIndex {
   )(implicit tag: reflect.ClassTag[T]): R = {
     val indices = new TMap[T]
     val entries = new mutable.ArrayBuffer[T]
-    // Trying to make reading the file more efficient.  I'm not sure this does it, though.
-    def parseFun(line: String): (Int, T) = {
-      val tabIndex = line.indexOf("\t")
-      val num = line.substring(0, tabIndex).toInt
-      val key = factory.fromString(line.substring(tabIndex + 1, line.length))
-      (num, key)
-    }
-    for ((num, key) <- fileUtil.getLineIterator(filename, parseFun _)) {
-      indices.put(key, num)
-      while (num > entries.size) {
+    // Trying to make reading the file more efficient by avoiding creating extra strings, and by
+    // avoiding the boxing of integers (and creating of unnecessary Integer objects) when returning
+    // Ints in a tuple.
+    def parseFun(line: String): Unit = {
+      var index = 0
+      var i = 0
+      while (line.charAt(i) != '\t') {
+        index *= 10
+        index += line.charAt(i) - 48
+        i += 1
+      }
+      i += 1
+      // It turns out that leaving out the java.lang here creates an _additional_ StringBuilder
+      // object, a scala wrapper around the java one.
+      val builder = new java.lang.StringBuilder
+      while (i < line.length) {
+        builder.append(line.charAt(i))
+        i += 1
+      }
+      val key = factory.fromString(builder.toString)
+      indices.put(key, index)
+      while (index > entries.size) {
         entries += null
       }
       entries += key
     }
+    fileUtil.processFile(filename, parseFun _)
     createInstance(indices, entries.toArray, fileUtil)
   }
 }
