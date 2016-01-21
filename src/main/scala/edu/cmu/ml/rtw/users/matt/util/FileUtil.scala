@@ -1,8 +1,13 @@
 package edu.cmu.ml.rtw.users.matt.util
 
+import java.io.BufferedInputStream
+import java.io.BufferedOutputStream
 import java.io.BufferedReader
+import java.io.DataInputStream
+import java.io.DataOutputStream
 import java.io.File
 import java.io.FileInputStream
+import java.io.FileOutputStream
 import java.io.FileWriter
 import java.io.InputStream
 import java.nio.file.FileSystems
@@ -135,6 +140,9 @@ class FileUtil {
       f(line)
     }
   }
+
+  def getDataOutputStream(filename: String) = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(filename)))
+  def getDataInputStream(filename: String) = new DataInputStream(new BufferedInputStream(new FileInputStream(filename)))
 
   def readLinesFromFile(filename: String) = getLineIterator(filename).toSeq
   def readLinesFromFile(file: File) = getLineIterator(file).toSeq
