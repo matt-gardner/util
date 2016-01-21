@@ -2,7 +2,7 @@ organization := "edu.cmu.ml.rtw"
 
 name := "matt-util"
 
-version := "1.2.2"
+version := "1.2.3"
 
 scalaVersion := "2.11.2"
 
@@ -18,6 +18,7 @@ libraryDependencies ++= Seq(
   "log4j" % "log4j" % "1.2.16",
   "commons-io" % "commons-io" % "2.4",
   "org.apache.commons" % "commons-compress" % "1.9",
+  "net.sf.trove4j" % "trove4j" % "2.0.2",
   // Scala utility libraries
   "org.json4s" %% "json4s-native" % "3.2.11",
   // Testing dependencies

@@ -23,12 +23,10 @@ class IndexSpec extends FlatSpecLike with Matchers {
 
   it should "work will multiple concurrent inserts" in {
     index.clear
-    println("Concurrent test")
     (1 to 1000).toList.par.foreach(i => {
       val j = index.getIndex("string")
       index.getKey(j) should be("string")
     })
-    println("Second concurrent test")
     (1 to 1000).toList.par.foreach(i => {
       val j = index.getIndex(s"string $i")
       index.getKey(j) should be(s"string $i")
@@ -65,7 +63,7 @@ class IndexSpec extends FlatSpecLike with Matchers {
     dictionary.getIndex("five") should be(5)
     TestUtil.expectError(classOf[NoSuchElementException], new TestUtil.Function() {
       override def call() {
-        dictionary.getIndex("two") should be(1)
+        dictionary.getIndex("two")
       }
     })
   }

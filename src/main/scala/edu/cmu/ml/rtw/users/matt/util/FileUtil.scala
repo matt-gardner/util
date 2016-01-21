@@ -33,7 +33,10 @@ class FileUtil {
   // These logEvery methods fit here, for now, because I only ever use them when I'm parsing
   // through a really long file and want to see progress updates as I go.
   def logEvery(logFrequency: Int, current: Int) {
-    logEvery(logFrequency, current, current.toString)
+    // We don't want to just call logEvery with current.toString, because that would create a
+    // string at every call, which is a total waste.  So we deal with a tiny amount of code
+    // duplication for efficiency's sake.
+    if (current % logFrequency == 0) println(current)
   }
 
   def logEvery(logFrequency: Int, current: Int, toLog: String) {
@@ -92,7 +95,7 @@ class FileUtil {
 
   def getFileWriter(filename: String, append: Boolean = false) = new FileWriter(filename, append)
 
-  def writeLinesToFile(filename: String, lines: Seq[String], append: Boolean = false) {
+  def writeLinesToFile(filename: String, lines: Iterable[String], append: Boolean = false) {
     val writer = getFileWriter(filename, append)
     for (line <- lines) {
       writer.write(line)
@@ -115,9 +118,13 @@ class FileUtil {
     }
   }
 
-  def getLineIterator(filename: String) = Source.fromFile(filename).getLines
+  def getLineIterator(filename: String): Iterator[String] = Source.fromFile(filename).getLines
   def getLineIterator(file: File) = Source.fromFile(file).getLines
   def getLineIterator(stream: InputStream) = Source.fromInputStream(stream).getLines
+
+  def getLineIterator[T](filename: String, f: String => T): Iterator[T] = getLineIterator(filename).map(f)
+  def getLineIterator[T](file: File, f: String => T): Iterator[T] = getLineIterator(file).map(f)
+  def getLineIterator[T](stream: InputStream, f: String => T): Iterator[T] = getLineIterator(stream).map(f)
 
   def readLinesFromFile(filename: String) = getLineIterator(filename).toSeq
   def readLinesFromFile(file: File) = getLineIterator(file).toSeq
@@ -261,6 +268,29 @@ class FileUtil {
   def readDoubleListFromFile(filename: String): Seq[Double] = {
     val f: String => Double = (line: String) => line.toDouble
     mapLinesFromFile(filename, f)
+  }
+
+  def intTripleFromLine(line: String): (Int, Int, Int) = {
+    var int1, int2, int3 = 0
+    var i = 0
+    while (line.charAt(i) != '\t') {
+      int1 *= 10
+      int1 += line.charAt(i) - 48
+      i += 1
+    }
+    i += 1
+    while (line.charAt(i) != '\t') {
+      int2 *= 10
+      int2 += line.charAt(i) - 48
+      i += 1
+    }
+    i += 1
+    while (i < line.length) {
+      int3 *= 10
+      int3 += line.charAt(i) - 48
+      i += 1
+    }
+    (int1, int2, int3)
   }
 
   def fileExists(path: String): Boolean = {

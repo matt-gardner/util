@@ -10,6 +10,8 @@ import java.io.IOException
 import java.io.InputStreamReader
 import java.util.concurrent.atomic.AtomicInteger
 
+import gnu.trove.{TObjectIntHashMap => TMap}
+
 /**
  * A mapping from some object to integers, for any application where such a mapping is useful
  * (generally because working with integers is much faster and less memory-intensive than working
@@ -155,12 +157,17 @@ class MutableConcurrentIndex[T >: Null](
 }
 
 class ImmutableIndex[T >: Null](
-  indices: Map[T, Int],
+  indices: TMap[T],
   entries: Array[T],
   fileUtil: FileUtil = new FileUtil
 ) extends Index[T] {
-  override def hasKey(key: T): Boolean = indices.contains(key)
-  override def getIndex(key: T): Int = indices(key)
+  override def hasKey(key: T): Boolean = indices.containsKey(key)
+  override def getIndex(key: T): Int = {
+    // TMap will return 0 here instead of null or throwing an exception, so we need to make the
+    // failure more visible.
+    if (!hasKey(key)) throw new NoSuchElementException(key.toString)
+    indices.get(key)
+  }
   override def getKey(index: Int): T = entries(index)
   override def size() = entries.size
   override def writeToFile(filename: String) {
@@ -170,7 +177,7 @@ class ImmutableIndex[T >: Null](
 
 object ImmutableIndex {
   def instance[T >: Null](
-    indices: Map[T, Int],
+    indices: TMap[T],
     entries: Array[T],
     fileUtil: FileUtil
   ): ImmutableIndex[T] = {
@@ -180,21 +187,25 @@ object ImmutableIndex {
   def readFromFile[T >: Null, R <: ImmutableIndex[T]](
     filename: String,
     factory: ObjectParser[T],
-    createInstance: (Map[T, Int], Array[T], FileUtil) => R,
+    createInstance: (TMap[T], Array[T], FileUtil) => R,
     fileUtil: FileUtil = new FileUtil
   )(implicit tag: reflect.ClassTag[T]): R = {
-    val indices = new mutable.HashMap[T, Int]
+    val indices = new TMap[T]
     val entries = new mutable.ArrayBuffer[T]
-    for (line <- fileUtil.getLineIterator(filename)) {
-      val parts = line.split("\t")
-      val num = parts(0).toInt
-      val key = factory.fromString(parts(1))
+    // Trying to make reading the file more efficient.  I'm not sure this does it, though.
+    def parseFun(line: String): (Int, T) = {
+      val tabIndex = line.indexOf("\t")
+      val num = line.substring(0, tabIndex).toInt
+      val key = factory.fromString(line.substring(tabIndex + 1, line.length))
+      (num, key)
+    }
+    for ((num, key) <- fileUtil.getLineIterator(filename, parseFun _)) {
       indices.put(key, num)
       while (num > entries.size) {
         entries += null
       }
       entries += key
     }
-    createInstance(indices.toMap, entries.toArray, fileUtil)
+    createInstance(indices, entries.toArray, fileUtil)
   }
 }

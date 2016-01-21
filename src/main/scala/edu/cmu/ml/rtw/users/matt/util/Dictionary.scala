@@ -1,5 +1,7 @@
 package edu.cmu.ml.rtw.users.matt.util
 
+import gnu.trove.{TObjectIntHashMap => TMap}
+
 /**
  * A String index is called a dictionary, because that's what I originally called it.
  */
@@ -15,7 +17,7 @@ class MutableConcurrentDictionary(
 }
 
 class ImmutableDictionary(
-  indices: Map[String, Int],
+  indices: TMap[String],
   entries: Array[String],
   fileUtil: FileUtil = new FileUtil
 ) extends ImmutableIndex[String](indices, entries, fileUtil) with Dictionary {
@@ -23,7 +25,7 @@ class ImmutableDictionary(
 
 object ImmutableDictionary {
   def instance(
-    indices: Map[String, Int],
+    indices: TMap[String],
     entries: Array[String],
     fileUtil: FileUtil
   ): ImmutableDictionary = {

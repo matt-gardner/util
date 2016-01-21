@@ -310,6 +310,13 @@ class FileUtilSpec extends FlatSpecLike with Matchers {
     new File(file).delete()
   }
 
+  "intTripleFromLine" should "correctly parse three integer lines" in {
+    fileUtil.intTripleFromLine("123\t456\t789") should be((123, 456, 789))
+    fileUtil.intTripleFromLine("1\t2\t3") should be((1, 2, 3))
+    fileUtil.intTripleFromLine("10000000\t2\t3") should be((10000000, 2, 3))
+    fileUtil.intTripleFromLine("12346789\t2\t3") should be((12346789, 2, 3))
+  }
+
   "parMapLinesFromFile" should "produce the same result as mapLinesFromFile" in {
     val lines = (1 to 1000).map(i => s"line $i")
     val file = "src/test/resources/test_par_map_lines.txt"

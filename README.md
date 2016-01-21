@@ -12,6 +12,13 @@ here because it just worked better with all of the things I wanted to test.
 
 # Change log
 
+## Version 1.2.3:
+
+- Use trove for immutable dictionaries, trying to further decrease memory usage and increase speed.
+
+- Trying to get more efficient parsing of large files.  Now you can read integers from a TSV file
+  without creating a ton of intermediate strings.
+
 ## Version 1.2.2:
 
 - Improved the Index/Dictionary API, so you can have a non-mutable (and thus much more efficient)
