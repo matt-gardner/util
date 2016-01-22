@@ -14,7 +14,8 @@ here because it just worked better with all of the things I wanted to test.
 
 ## Version 1.2.4:
 
-- Added simple methods for reading and writing binary files to FileUtil.
+- Added simple methods for reading and writing binary files, and for deleting directories, to
+  FileUtil.
 
 ## Version 1.2.3:
 

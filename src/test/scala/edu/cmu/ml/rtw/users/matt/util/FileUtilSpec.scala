@@ -3,6 +3,7 @@ package edu.cmu.ml.rtw.users.matt.util
 import org.scalatest._
 
 import edu.cmu.ml.rtw.users.matt.util.TestUtil.Function
+
 import java.io.File
 import java.io.BufferedReader
 import java.io.StringReader
@@ -115,6 +116,15 @@ class FileUtilSpec extends FlatSpecLike with Matchers {
     fileUtil.deleteFile(file)
     new File(file).exists() should be(false)
     new File(file).createNewFile()
+  }
+
+  "deleteDirectory" should "delete a whole directory" in {
+    val dir = "src/test/resources/some/random/test/dir/"
+    fileUtil.mkdirs(dir)
+    fileUtil.fileExists(dir) should be(true)
+    fileUtil.deleteDirectory("src/test/resources/some/")
+    fileUtil.fileExists(dir) should be(false)
+    fileUtil.fileExists("src/test/resources/some/") should be(false)
   }
 
   "writeLinesToFile" should "write the lines to the file" in {

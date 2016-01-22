@@ -77,6 +77,11 @@ class FakeFileUtil extends FileUtil {
     existingPaths.remove(filename)
   }
 
+  override def deleteDirectory(filename: String) {
+    // TODO(matt): once again, not great, but I don't need this yet, other than for it to not
+    // crash.
+  }
+
   override def blockOnFileDeletion(filename: String) { }
 
   def addFileToBeRead(filename: String, contents: String) {

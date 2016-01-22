@@ -17,6 +17,9 @@ import java.nio.file.StandardWatchEventKinds
 
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream
 
+// There might be more things that I can use from here; I haven't really looked.
+import org.apache.commons.io.FileUtils
+
 import scala.collection.mutable
 import scala.collection.JavaConverters._
 import scala.io.Source
@@ -96,6 +99,10 @@ class FileUtil {
 
   def deleteFile(filename: String) {
     new File(filename).delete()
+  }
+
+  def deleteDirectory(dirname: String) {
+    FileUtils.deleteDirectory(new File(dirname))
   }
 
   def getFileWriter(filename: String, append: Boolean = false) = new FileWriter(filename, append)
