@@ -20,6 +20,7 @@ import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream
 // There might be more things that I can use from here; I haven't really looked.
 import org.apache.commons.io.FileUtils
 
+import scala.collection.concurrent.TrieMap
 import scala.collection.mutable
 import scala.collection.JavaConverters._
 import scala.io.Source
@@ -38,6 +39,9 @@ import scala.util.matching.Regex
  * two classes, the one that does file manipulation would need to call the file system interface.
  */
 class FileUtil {
+  // When processing large files, how many lines should we do at a time?
+  val _chunkSize = 16 * 1024
+
   // These logEvery methods fit here, for now, because I only ever use them when I'm parsing
   // through a really long file and want to see progress updates as I go.
   def logEvery(logFrequency: Int, current: Int) {
@@ -130,6 +134,9 @@ class FileUtil {
     }
   }
 
+  // TODO(matt): I should look into implicit conversions, so I don't have to have three (or more)
+  // versions of all of these methods.  I should be able to have just one version for each method
+  // that takes a FileLike, then match on the FileLike in getLineIterator.
   def getLineIterator(filename: String): Iterator[String] = Source.fromFile(filename).getLines
   def getLineIterator(file: File) = Source.fromFile(file).getLines
   def getLineIterator(stream: InputStream) = Source.fromInputStream(stream).getLines
@@ -148,6 +155,26 @@ class FileUtil {
     }
   }
 
+  def countWords(line: String): Seq[String] = line.split(" ")
+
+  def getCountsFromFile[T](
+    filename: String,
+    f: String => Seq[T],
+    chunkSize: Int = _chunkSize
+  ): Map[T, Int] = {
+    val counts = new TrieMap[T, Int]
+    val iterator = getLineIterator(filename).grouped(chunkSize)
+    iterator.foreach(lines => {
+      // We could just do this on the whole iterator, but for very large files that would use too
+      // much memory - groupBy() on the whole file is not a good idea.
+      lines.par.flatMap(f).groupBy(identity).seq.map(entry => {
+        val (key, count) = (entry._1, entry._2.size)
+        counts.update(key, count + counts.getOrElse(key, 0))
+      })
+    })
+    counts.toMap
+  }
+
   def getDataOutputStream(filename: String) = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(filename)))
   def getDataInputStream(filename: String) = new DataInputStream(new BufferedInputStream(new FileInputStream(filename)))
 
@@ -164,7 +191,6 @@ class FileUtil {
     getLineIterator(filename).flatMap(function).toSeq
   }
 
-  val _chunkSize = 128 * 1024
   def parMapLinesFromFile[T](filename: String, function: String => T, chunkSize: Int = _chunkSize): Seq[T] = {
     val iterator = getLineIterator(filename).grouped(chunkSize)
     iterator.flatMap(lines => {

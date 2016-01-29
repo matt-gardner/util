@@ -374,4 +374,20 @@ class FileUtilSpec extends FlatSpecLike with Matchers {
     new File(file).delete()
     new File(file2).delete()
   }
+
+  "getCountFromFile" should "get the correct counts" in {
+    // We'll do this with a FakeFileUtil, which overrides the filesystem access, but not the count
+    // operations.
+    val f = new FakeFileUtil
+    val filename = "/fake/file"
+    val fileContents = "this is a\nthis is a\nthis is funny file\n"
+    f.addFileToBeRead(filename, fileContents)
+    val counts = f.getCountsFromFile(filename, f.countWords)
+    counts.size should be(5)
+    counts("this") should be(3)
+    counts("is") should be(3)
+    counts("a") should be(2)
+    counts("funny") should be(1)
+    counts("file") should be(1)
+  }
 }
