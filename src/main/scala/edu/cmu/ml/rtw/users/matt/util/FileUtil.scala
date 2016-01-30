@@ -155,7 +155,8 @@ class FileUtil {
     }
   }
 
-  def countWords(line: String): Seq[String] = line.split(" ")
+  // This needs to be a val, not a def, for efficiency's sake when used with getCountsFileFile.
+  val countWords: String => Seq[String] = line => line.split(" ")
 
   def getCountsFromFile[T](
     filename: String,
