@@ -148,10 +148,32 @@ class FileUtil {
   def processFile(filename: String, f: String => Unit): Unit = processFile(getLineIterator(filename), f)
   def processFile(file: File, f: String => Unit): Unit = processFile(getLineIterator(file), f)
   def processFile(stream: InputStream, f: String => Unit): Unit = processFile(getLineIterator(stream), f)
-
   def processFile(iterator: Iterator[String], f: String => Unit): Unit = {
     for (line <- iterator) {
       f(line)
+    }
+  }
+
+  def parProcessFile(filename: String, f: String => Unit): Unit = parProcessFile(getLineIterator(filename), f)
+  def parProcessFile(file: File, f: String => Unit): Unit = parProcessFile(getLineIterator(file), f)
+  def parProcessFile(stream: InputStream, f: String => Unit): Unit = parProcessFile(getLineIterator(stream), f)
+  def parProcessFile(iterator: Iterator[String], f: String => Unit, chunkSize: Int = _chunkSize): Unit = {
+    val grouped = iterator.grouped(chunkSize)
+    for (lines <- grouped) {
+      lines.par.foreach(f)
+    }
+  }
+
+  def parProcessFileInChunks(filename: String, f: Seq[String] => Unit): Unit = parProcessFileInChunks(getLineIterator(filename), f)
+  def parProcessFileInChunks(file: File, f: Seq[String] => Unit): Unit = parProcessFileInChunks(getLineIterator(file), f)
+  def parProcessFileInChunks(stream: InputStream, f: Seq[String] => Unit): Unit = parProcessFileInChunks(getLineIterator(stream), f)
+  def parProcessFileInChunks(iterator: Iterator[String], f: Seq[String] => Unit, chunkSize: Int = _chunkSize): Unit = {
+    val numCores = Runtime.getRuntime.availableProcessors
+    val largerChunkSize = chunkSize * numCores
+    val largeChunks = iterator.grouped(largerChunkSize)
+    for (largeChunk <- largeChunks) {
+      val smallerChunks = largeChunk.grouped(chunkSize).toSeq
+      smallerChunks.par.foreach(f)
     }
   }
 
