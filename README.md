@@ -12,6 +12,18 @@ here because it just worked better with all of the things I wanted to test.
 
 # Change log
 
+## Version 2.1
+
+- Added pipeline / workflow functionality, to manage multi-step processes in an
+  experiment workflow.
+
+- Added significance testing, and some other metric computation stuff.
+
+## Version 2.0:
+
+- Shortened package name from edu.cmu.ml.rtw.users.matt.util to com.mattg.util.  Bumped the
+  version number to 2.0, because this is a breaking change.
+
 ## Version 1.2.5:
 
 - Added a parallel count operation for large files.
