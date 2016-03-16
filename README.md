@@ -21,6 +21,8 @@ here because it just worked better with all of the things I wanted to test.
 
 - Added some more parallel file processing.
 
+- Added some stats functionality (computing average precision and reciprocal rank, p-values, ...)
+
 ## Version 2.0:
 
 - Shortened package name from edu.cmu.ml.rtw.users.matt.util to com.mattg.util.  Bumped the
