@@ -72,6 +72,13 @@ class FileUtil {
     new File(addDirectorySeparatorIfNecessary(dirName)).mkdirs()
   }
 
+  /**
+   * Calls mkdirs on the parent of this file.
+   */
+  def mkdirsForFile(filename: String) {
+    mkdirs(new File(filename).getParent)
+  }
+
   def listDirectoryContents(filename: String): Seq[String] = {
     val file = new File(filename)
     if (!file.exists()) throw new RuntimeException(s"$filename does not exist")
@@ -144,6 +151,9 @@ class FileUtil {
   def getLineIterator[T](filename: String, f: String => T): Iterator[T] = getLineIterator(filename).map(f)
   def getLineIterator[T](file: File, f: String => T): Iterator[T] = getLineIterator(file).map(f)
   def getLineIterator[T](stream: InputStream, f: String => T): Iterator[T] = getLineIterator(stream).map(f)
+
+  def readFileContents(filename: String) = getLineIterator(filename).toSeq.mkString("\n")
+  def readFileContents(file: File) = getLineIterator(file).toSeq.mkString("\n")
 
   def processFile(filename: String, f: String => Unit): Unit = processFile(getLineIterator(filename), f)
   def processFile(file: File, f: String => Unit): Unit = processFile(getLineIterator(file), f)
