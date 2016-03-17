@@ -41,7 +41,7 @@ object MapAndMrrComputer extends MetricComputer {
     (collectionMetrics.toMap, taskMetrics)
   }
 
-  override def computeRelationMetrics[T](ranking: Ranking[T], taskAnswers: Set[T]) = {
+  override def computeTaskMetrics[T](ranking: Ranking[T], taskAnswers: Set[T]) = {
     val metrics = EmptyMetrics
     metrics("AP") = Metrics.computeAveragePrecision(ranking, taskAnswers)
     metrics("RR") = Metrics.computeReciprocalRank(ranking, taskAnswers)
@@ -72,7 +72,7 @@ class WeightedMapComputer(taskWeights: Seq[Double]) extends MetricComputer {
     (collectionMetrics.toMap, EmptyImmutableTaskMetrics)
   }
 
-  override def computeRelationMetrics[T](ranking: Ranking[T], taskAnswers: Set[T]) = {
+  override def computeTaskMetrics[T](ranking: Ranking[T], taskAnswers: Set[T]) = {
     val metrics = EmptyMetrics
     metrics("AP") = Metrics.computeAveragePrecision(ranking, taskAnswers)
     metrics("RR") = Metrics.computeReciprocalRank(ranking, taskAnswers)
