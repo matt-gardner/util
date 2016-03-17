@@ -1,4 +1,6 @@
-package com.mattg.util
+package com.mattg.pipeline
+
+import com.mattg.util.FileUtil
 
 import org.json4s.JValue
 import org.json4s.native.JsonMethods._

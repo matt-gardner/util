@@ -1,6 +1,6 @@
-package com.mattg.util
+package com.mattg.stats
 
-object Stats {
+object Metrics {
 
   // A helper method that really could belong in a different class.  Just computing average
   // precision from a list of scored objects.  We group and sort this list, just in case it wasn't

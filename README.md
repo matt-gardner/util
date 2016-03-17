@@ -17,11 +17,9 @@ here because it just worked better with all of the things I wanted to test.
 - Added pipeline / workflow functionality, to manage multi-step processes in an
   experiment workflow.
 
-- Added significance testing, and some other metric computation stuff.
+- Added significance testing, and some other metric computation (and output) stuff.
 
 - Added some more parallel file processing.
-
-- Added some stats functionality (computing average precision and reciprocal rank, p-values, ...)
 
 ## Version 2.0:
 

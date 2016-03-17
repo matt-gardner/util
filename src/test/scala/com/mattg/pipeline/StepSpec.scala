@@ -1,10 +1,12 @@
-package com.mattg.util
+package com.mattg.pipeline
 
 import org.scalatest._
 
 import org.json4s._
 import org.json4s.JsonDSL._
 
+import com.mattg.util.FileUtil
+import com.mattg.util.TestUtil
 import com.mattg.util.TestUtil.Function
 
 class StepSpec extends FlatSpecLike with Matchers {
