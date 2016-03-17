@@ -116,6 +116,10 @@ class FileUtil {
     FileUtils.deleteDirectory(new File(dirname))
   }
 
+  def getTimestamp(filename: String): Long = {
+    new File(filename).lastModified
+  }
+
   def getFileWriter(filename: String, append: Boolean = false) = new FileWriter(filename, append)
 
   def writeLinesToFile(filename: String, lines: Iterable[String], append: Boolean = false) {
