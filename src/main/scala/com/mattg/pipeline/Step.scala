@@ -68,7 +68,7 @@ abstract class Step(val params: Option[JValue], fileUtil: FileUtil = new FileUti
             if (step.outputs().contains(filename)) {
               step.runPipeline()
             } else {
-              throw new IllegalStateException(s"Given substep does not produce correct file: $filename not in ${step.outputs()}")
+              throw new IllegalStateException(s"Given substep (${step.name}) does not produce correct file: $filename not in ${step.outputs()}")
             }
           }
         }
@@ -82,8 +82,8 @@ abstract class Step(val params: Option[JValue], fileUtil: FileUtil = new FileUti
               case Some(p) => {
                 // Make sure that the Step's parameters match the saved parameters for this file.
                 val savedParams = parse(fileUtil.readFileContents(step.paramFile))
-                println(s"saved params: $savedParams; params: $p")
                 if (savedParams != p) {
+                  println(s"saved params: $savedParams; params: $p")
                   throw new IllegalStateException(s"Saved parameters for step ${step.name} don't match!")
                 }
               }
