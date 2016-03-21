@@ -67,6 +67,8 @@ object PairedPermutationTest extends SignificanceTest {
 
 object TwoSidedPairedSignTest extends SignificanceTest {
   override val name = "two-sided paired sign test"
+
+  // TODO(matt): Write tests for this!  I think it's currently broken.
   override def computePValue(method1Results: Seq[Double], method2Results: Seq[Double]) = {
     if (method1Results.size != method2Results.size) {
       throw new IllegalStateException("This is a paired test, and sizes don't match")
