@@ -3,7 +3,7 @@ package com.mattg.pipeline
 import collection.mutable
 import scala.math.Ordering.Implicits._
 
-import com.mattg.stats.Metrics
+import com.mattg.stats.{Metrics=>StatsMetrics}
 import com.mattg.stats.PairedPermutationTest
 import com.mattg.stats.SignificanceTest
 import com.mattg.stats.TwoSidedPairedSignTest
@@ -43,8 +43,8 @@ object MapAndMrrComputer extends MetricComputer {
 
   override def computeTaskMetrics[T](ranking: Ranking[T], taskAnswers: Set[T]) = {
     val metrics = EmptyMetrics
-    metrics("AP") = Metrics.computeAveragePrecision(ranking, taskAnswers)
-    metrics("RR") = Metrics.computeReciprocalRank(ranking, taskAnswers)
+    metrics("AP") = StatsMetrics.computeAveragePrecision(ranking, taskAnswers)
+    metrics("RR") = StatsMetrics.computeReciprocalRank(ranking, taskAnswers)
     metrics.toMap
   }
 
@@ -74,8 +74,8 @@ class WeightedMapComputer(taskWeights: Seq[Double]) extends MetricComputer {
 
   override def computeTaskMetrics[T](ranking: Ranking[T], taskAnswers: Set[T]) = {
     val metrics = EmptyMetrics
-    metrics("AP") = Metrics.computeAveragePrecision(ranking, taskAnswers)
-    metrics("RR") = Metrics.computeReciprocalRank(ranking, taskAnswers)
+    metrics("AP") = StatsMetrics.computeAveragePrecision(ranking, taskAnswers)
+    metrics("RR") = StatsMetrics.computeReciprocalRank(ranking, taskAnswers)
     metrics.toMap
   }
 
@@ -89,9 +89,9 @@ object MetricOutputter {
   val defaultMethodMetricsToDisplay = Seq("MAP", "MRR")
   val defaultTaskMetricsToDisplay = Seq()
   val defaultSignificanceTests = Seq(
-    ("AP", PairedPermutationTest),
+    ("AP", PairedPermutationTest()),
     ("AP", TwoSidedPairedSignTest),
-    ("RR", PairedPermutationTest),
+    ("RR", PairedPermutationTest()),
     ("RR", TwoSidedPairedSignTest)
   )
   val defaultSortResultsBy = Seq("-MAP", "-MRR")
@@ -288,6 +288,7 @@ class MetricOutputter[T](
       val computedMetrics = metricComputer.computeDatasetMetrics(rankings, tasks, makeImmutable(metrics))
       mergeDatasetMetrics(metrics, computedMetrics)
     }
+    metrics._1(TIMESTAMP) = System.currentTimeMillis
   }
 
   def saveMetrics(metrics: Map[String, DatasetMetrics]) {

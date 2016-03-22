@@ -2,8 +2,6 @@ package com.mattg.stats
 
 import org.scalatest._
 
-import com.mattg.util.TestUtil.Function
-
 class MetricsSpec extends FlatSpecLike with Matchers {
   "computeAveragePrecision" should "give the correct answer with a simple example" in {
     val scores = Seq((1.0, "a"), (.8, "b"), (.4, "c"))
