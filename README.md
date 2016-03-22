@@ -9,6 +9,12 @@ with the filesystem to be testable, without having to have BufferedReader method
 only parts that are tested.  I started out with the BufferedReader testing route, and ended up
 here because it just worked better with all of the things I wanted to test.
 
+Another big piece (new in version 2.1) is functionality for managing experiment pipelines.  This
+lets you specify a number of Steps, with input files and output files, and run a whole pipeline by
+just telling the last Step to run (which will run whatever other earlier Steps in the pipeline are
+needed to produce input files that don't already exist).  In addition, there's a Metrics class
+that's mostly reusable for comparing the output of different systems and printing results to the
+screen (including computing metrics like MAP, and significance tests).
 
 # Change log
 
