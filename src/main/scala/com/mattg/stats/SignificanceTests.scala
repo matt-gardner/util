@@ -8,7 +8,7 @@ trait SignificanceTest {
   def computePValue[T:Numeric](method1Results: Seq[T], method2Results: Seq[T]): Double
 }
 
-case class PairedPermutationTest(iters: Int = 100000) extends SignificanceTest {
+case class PairedPermutationTest(iters: Int = 10000) extends SignificanceTest {
   override val name = "paired permutation test"
   override def computePValue[T:Numeric](method1Results: Seq[T], method2Results: Seq[T]) = {
     if (method1Results.size != method2Results.size) {
