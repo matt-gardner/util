@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/matt-gardner/util.svg?branch=master)](https://travis-ci.org/matt-gardner/util)
+[![Coverage Status](https://coveralls.io/repos/github/matt-gardner/util/badge.svg?branch=master)](https://coveralls.io/github/matt-gardner/util?branch=master)
+
 A simple collection of utilities that I've slowly been building as I need them for various
 projects.  This is intended to contain things that are likely to be reusable across projects.
 
@@ -17,6 +20,10 @@ that's mostly reusable for comparing the output of different systems and printin
 screen (including computing metrics like MAP, and significance tests).
 
 # Change log
+
+## Version 2.2 (current snapshot)
+
+- Added Travis CI and coveralls integration (as seen by the badges at the top of this README).
 
 ## Version 2.1
 
