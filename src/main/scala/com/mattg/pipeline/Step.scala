@@ -83,7 +83,9 @@ abstract class Step(val params: Option[JValue], fileUtil: FileUtil = new FileUti
                 // Make sure that the Step's parameters match the saved parameters for this file.
                 val savedParams = parse(fileUtil.readFileContents(step.paramFile))
                 if (savedParams != p) {
-                  println(s"saved params: $savedParams; params: $p")
+                  println(s"saved params: ${pretty(render(savedParams))}")
+                  println(s"params: ${pretty(render(p))}")
+                  println(s"diff: ${p diff savedParams}")
                   throw new IllegalStateException(s"Saved parameters for step ${step.name} don't match!")
                 }
               }
