@@ -21,6 +21,10 @@ screen (including computing metrics like MAP, and significance tests).
 
 # Change log
 
+## Version 2.2 (current snapshot)
+
+- Fixed some bugs in the pipeline code
+
 ## Version 2.1
 
 - Added Travis CI and coveralls integration (as seen by the badges at the top of this README).
