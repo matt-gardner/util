@@ -2,7 +2,7 @@ package com.mattg.pipeline
 
 import com.mattg.util.FileUtil
 
-import org.json4s.JValue
+import org.json4s._
 import org.json4s.native.JsonMethods._
 
 /**
@@ -58,17 +58,17 @@ abstract class Step(val params: Option[JValue], fileUtil: FileUtil = new FileUti
     // are only run once - if a step provides multiple files, it'll produce them after it's run the
     // first time, and the fileExists() check will return true for all subsequent files.  If we run
     // this is parallel, we need to be smarter to be sure that any given step only runs once.
-    for ((filename, stepOption) <- inputs()) {
+    for ((filename, stepOption) <- inputs) {
       if (!fileUtil.fileExists(filename)) {
         println(s"Missing required file $filename; trying to create it")
         stepOption match {
           case None => throw new IllegalStateException(s"No step given to produce required file $filename")
           case Some(step) => {
             // Make sure that this step actually provides the file.  If it does, run its pipeline.
-            if (step.outputs().contains(filename)) {
+            if (step.outputs.contains(filename)) {
               step.runPipeline()
             } else {
-              throw new IllegalStateException(s"Given substep (${step.name}) does not produce correct file: $filename not in ${step.outputs()}")
+              throw new IllegalStateException(s"Given substep (${step.name}) does not produce correct file: $filename not in ${step.outputs}")
             }
           }
         }
@@ -82,7 +82,7 @@ abstract class Step(val params: Option[JValue], fileUtil: FileUtil = new FileUti
               case Some(p) => {
                 // Make sure that the Step's parameters match the saved parameters for this file.
                 val savedParams = parse(fileUtil.readFileContents(step.paramFile))
-                if (savedParams != p) {
+                if (!parametersMatch(savedParams, p)) {
                   println(s"saved params: ${pretty(render(savedParams))}")
                   println(s"params: ${pretty(render(p))}")
                   println(s"diff: ${p diff savedParams}")
@@ -99,6 +99,24 @@ abstract class Step(val params: Option[JValue], fileUtil: FileUtil = new FileUti
   }
 
   /**
+   * json4s crashes if you try to render JNothing.  But, I think JNothing is a better
+   * representation of "use all default parameters" than JObject(List()), so I'm going to stick
+   * with JNothing.  That means I have to do this silly mapping from JNothing to JObject(List())
+   * when saving the parameters, and the reverse mapping when loading them.
+   *
+   * An additional benefit of doing it this way, though, is that you now have the option to
+   * override this method, if there are some parameters you want to ignore when deciding if the
+   * saved parameters match the current parameters.
+   */
+  def parametersMatch(loadedParams: JValue, currentParams: JValue): Boolean = {
+    val normalized = loadedParams match {
+      case JObject(List()) => JNothing
+      case jval => jval
+    }
+    currentParams == normalized
+  }
+
+  /**
    * Once we've determined that all of the required input files are present, run the work defined
    * by this step of the pipeline.  In this method, we save a parameter file, then call the
    * (abstract) method that actually does the computation.
@@ -110,8 +128,12 @@ abstract class Step(val params: Option[JValue], fileUtil: FileUtil = new FileUti
     params match {
       case None => { }
       case Some(p) => {
-        fileUtil.mkdirsForFile(paramFile())
-        fileUtil.writeContentsToFile(paramFile(), pretty(render(p)))
+        fileUtil.mkdirsForFile(paramFile)
+        val normalized = p match {
+          case JNothing => JObject(List())
+          case jval => jval
+        }
+        fileUtil.writeContentsToFile(paramFile, pretty(render(normalized)))
       }
     }
     _runStep()
@@ -122,9 +144,6 @@ abstract class Step(val params: Option[JValue], fileUtil: FileUtil = new FileUti
    */
   protected def _runStep()
 
-  // TODO(matt): I don't understand defs vs. vals in abstract classes in scala well enough...
-  // Should these be vals instead of defs?
-
   /**
    * If this step takes parameters, we save them to this location.  This is for two reasons: (1)
    * you may run an experiment one day, then two months later come back and want to know what
@@ -134,22 +153,22 @@ abstract class Step(val params: Option[JValue], fileUtil: FileUtil = new FileUti
    * cause enormous confusion and silent errors.  Having a paramFile lets us ensure that you have
    * no such errors in your experiments.
    */
-  def paramFile(): String = throw new IllegalStateException("I have parameters, but no param file!")
+  def paramFile: String = throw new IllegalStateException("I have parameters, but no param file!")
 
   /**
    * The step name isn't really used anywhere except for logging things.  You can override it if
    * you want, or just ignore it.
    */
-  def name(): String = "no name"
+  def name: String = "no name"
 
   /**
    * What are the output files of this step?
    */
-  def outputs(): Set[String]
+  def outputs: Set[String]
 
   /**
    * What file inputs does this step require, and where do you expect to get them from?  If you
    * expect them to be inputs from outside this pipeline, you use None instead of Some(Step).
    */
-  def inputs(): Set[(String, Option[Step])]
+  def inputs: Set[(String, Option[Step])]
 }
