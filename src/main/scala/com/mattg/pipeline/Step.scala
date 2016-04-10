@@ -30,8 +30,6 @@ import org.json4s.native.JsonMethods._
  * and none will be saved.  Passing Some(JNothing) just means (typically) that default values
  * will be used for all configurable parameters.
  *
- * TODO(matt): figure out the right way to do parallel execution of Steps.
- *
  * Note that these Steps are defined in terms of their inputs and outputs in the filesystem.  It's
  * up to the caller to determine whether to use absolute or relative paths in these steps.
  *
@@ -41,11 +39,11 @@ import org.json4s.native.JsonMethods._
  * very lightweight - do NOT load any data or other resources in the constructor; if you want the
  * data to be a class variable, make sure it's a lazy val.
  */
-abstract class Step(val params: Option[JValue], fileUtil: FileUtil = new FileUtil) {
+abstract class Step(val params: Option[JValue], fileUtil: FileUtil) {
 
   /**
    * Run the pipeline up to and including this step.  If there are required input files that are
-   * not already present, we try to compute them using the Steps given by the inputs() method.
+   * not already present, we try to compute them using the Steps given by `inputs`.
    *
    * Note that we do NOT check if the files provided by this step already exist.  We assume that if
    * you're calling this method on this object, you want to run this step no matter what.  Best
@@ -53,12 +51,56 @@ abstract class Step(val params: Option[JValue], fileUtil: FileUtil = new FileUti
    * just prints some stuff to stdout (or, in general, just has no output files).
    */
   def runPipeline() {
+    val alreadyInProgress = fileUtil synchronized {
+      if (fileUtil.fileExists(inProgressFile)) {
+        true
+      } else {
+        fileUtil.touchFile(inProgressFile)
+        false
+      }
+    }
+    if (alreadyInProgress) {
+      // If another process is already working on this, we wait until the other process is
+      // finished; we don't want to return before the files we're supposed to create have been
+      // created.
+      fileUtil.blockOnFileDeletion(inProgressFile)
+    } else {
+      // No other process is working on this pipeline, so we run it, and delete the inProgressFile
+      // when we're done.
+      try {
+        _runPipeline()
+      } catch {
+        case e: IllegalStateException => {
+          // If the pipeline crashes with an illegal state exception, most of the time that means
+          // we had malformed parameters or missing inputs.  In this case, we'll delete the
+          // inProgressFile and re-throw the exception.  That makes it easier to fix the parameters
+          // and re-run the pipeline, without having to manually delete this file.  However, if the
+          // pipeline crashed with some other error, we might have partial output files somewhere,
+          // and that could be bad, so we'll leave the file there to require a manual check that
+          // other files are cleaned up.
+          fileUtil.deleteFile(inProgressFile)
+          throw e
+        }
+      }
+      fileUtil synchronized {
+        fileUtil.deleteFile(inProgressFile)
+      }
+    }
+  }
+
+  /**
+   * runPipeline() mostly does checks for parallel execution of this Step, then it passes off to
+   * _runPipeline(), if there isn't another process already working on it.  Here we check for input
+   * files, run substeps, and so on.
+   */
+  def _runPipeline() {
     println(s"Running pipeline for step: $name")
-    // Because this is currently sequential, we don't need to do anything fancy to make sure steps
-    // are only run once - if a step provides multiple files, it'll produce them after it's run the
-    // first time, and the fileExists() check will return true for all subsequent files.  If we run
-    // this is parallel, we need to be smarter to be sure that any given step only runs once.
-    for ((filename, stepOption) <- inputs) {
+    val _inputs = if (runSubstepsInParallel) inputs.par else inputs
+    for (input <- _inputs) {
+      // Putting this split directly into the for comprehension gives me a funny compiler warning
+      // about `withFilter` (because of the type ambiguity between a parset and a set), so I moved
+      // it into the loop.
+      val (filename, stepOption) = input
       if (!fileUtil.fileExists(filename)) {
         println(s"Missing required file $filename; trying to create it")
         stepOption match {
@@ -120,9 +162,6 @@ abstract class Step(val params: Option[JValue], fileUtil: FileUtil = new FileUti
    * Once we've determined that all of the required input files are present, run the work defined
    * by this step of the pipeline.  In this method, we save a parameter file, then call the
    * (abstract) method that actually does the computation.
-   *
-   * TODO(matt): add checks for parallel execution in here (like, e.g., checking for an
-   * "in_progress" file; in that case, we wait for the file to be removed, then skip _runStep()).
    */
   def runStep() {
     params match {
@@ -154,6 +193,21 @@ abstract class Step(val params: Option[JValue], fileUtil: FileUtil = new FileUti
    * no such errors in your experiments.
    */
   def paramFile: String = throw new IllegalStateException("I have parameters, but no param file!")
+
+  /**
+   * This file gets created at the beginning of runPipeline, to indicate that a process is working on
+   * running this Step.  It gets deleted at the end of runPipeline.  This allows for parallel
+   * execution of substeps, without repeating work or creating race conditions.
+   */
+  def inProgressFile: String
+
+  /**
+   * Should we run the steps we depend on in parallel?  Override this to true if so.  This defaults
+   * to false, because there are too many issues with just assuming we can run everything in
+   * parallel - we might not have enough memory, the steps might already use a significant amount
+   * of parallelism so doing this is pointless, etc.
+   */
+  def runSubstepsInParallel: Boolean = false
 
   /**
    * The step name isn't really used anywhere except for logging things.  You can override it if

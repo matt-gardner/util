@@ -29,6 +29,8 @@ libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % "2.2.1" % "test"
 )
 
+cancelable in Global := true
+
 testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-oD")
 
 jacoco.settings

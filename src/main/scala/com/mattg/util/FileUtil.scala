@@ -403,10 +403,15 @@ class FileUtil {
 
   def blockOnFileDeletion(filename: String) {
     if (!new File(filename).exists()) return
-    println(s"Waiting for file $filename to be deleted")
     val watchService = FileSystems.getDefault().newWatchService()
     val parent = Paths.get(filename).getParent()
     val watchKey = parent.register(watchService, StandardWatchEventKinds.ENTRY_DELETE)
+    // In certain rare circumstances, the file could be deleted in between between the initial call
+    // and when the watchService gets set up (this happens in one of my test cases, for instance).
+    // Setting up the watch service takes longer than touching and then deleting a few files, so
+    // the test deadlocks here.  This return statement fixes those tests.
+    if (!new File(filename).exists()) return
+    println(s"Waiting for file $filename to be deleted")
     val key = watchService.take()
     for (event <- key.pollEvents.asScala) {
       if (filename.endsWith(event.context().toString())) return

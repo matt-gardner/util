@@ -23,6 +23,11 @@ screen (including computing metrics like MAP, and significance tests).
 
 ## Version 2.2 (current snapshot)
 
+- Added parallel execution of substeps in a pipeline, which required adding inProgressFiles.  Note
+  that the inProgressFiles help you even if you aren't using parallel execution within a single sbt
+process (i.e., if runSubstepsInParallel is always false) - if you start several sbt processes that
+run overlapping pipelines, this will still protect the bits that overlap.
+
 - Fixed some bugs in the pipeline code
 
 ## Version 2.1
