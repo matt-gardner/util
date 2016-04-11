@@ -55,6 +55,7 @@ abstract class Step(val params: Option[JValue], fileUtil: FileUtil) {
       if (fileUtil.fileExists(inProgressFile)) {
         true
       } else {
+        fileUtil.mkdirsForFile(inProgressFile)
         fileUtil.touchFile(inProgressFile)
         false
       }
