@@ -2,8 +2,6 @@ package com.mattg.util
 
 import org.scalatest._
 
-import com.mattg.util.TestUtil.Function
-
 import org.json4s._
 import org.json4s.JsonDSL._
 import org.json4s.native.JsonMethods._
@@ -257,41 +255,5 @@ class SpecFileReaderSpec extends FlatSpecLike with Matchers {
 
   it should "remove fields labeled 'delete'" in {
     new SpecFileReader("", fileUtil).readSpecFile(deletedSpecFilename) should be(deletedParams)
-  }
-
-  "JsonHelper.extractWithDefault" should "return the parameter when it is present" in {
-    JsonHelper.extractWithDefault(graphSpec, "name", "default name") should be(graphDir)
-  }
-
-  it should "return the default when the parameter is not present" in {
-    JsonHelper.extractWithDefault(graphSpec, "key", "default key") should be("default key")
-  }
-
-  "JsonHelper.extractOption" should "return the parameter when it is present" in {
-    JsonHelper.extractOption(graphSpec, "name", Seq(graphDir)) should be(graphDir)
-  }
-
-  it should "throw an error when the parameter is not in the allowed options" in {
-    TestUtil.expectError(classOf[IllegalStateException], "not a member of", new Function() {
-      override def call() {
-        JsonHelper.extractOption(graphSpec, "name", Seq("option 1", "option 2"))
-      }
-    })
-  }
-
-  "JsonHelper.extractOptionWithDefault" should "return the parameter when it is present" in {
-    JsonHelper.extractOptionWithDefault(graphSpec, "name", Seq(graphDir), "default name") should be(graphDir)
-  }
-
-  it should "return the default when the parameter is not present" in {
-    JsonHelper.extractOptionWithDefault(graphSpec, "key", Seq("key 1", "key 2"), "key 1") should be("key 1")
-  }
-
-  it should "throw an error when the parameter is not in the allowed options" in {
-    TestUtil.expectError(classOf[IllegalStateException], "not a member of", new Function() {
-      override def call() {
-        JsonHelper.extractOptionWithDefault(graphSpec, "name", Seq("option 1", "option 2"), "default")
-      }
-    })
   }
 }
