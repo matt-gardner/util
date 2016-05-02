@@ -283,7 +283,7 @@ class FileUtilSpec extends FlatSpecLike with Matchers {
     val dict = new MutableConcurrentDictionary()
     dict.getIndex("fake1")
     dict.getIndex("fake2")
-    val set = fileUtil.readIntegerSetFromFile(file, dict)
+    val set = fileUtil.readIntegerSetFromFile(file, Some(dict))
     set.size should be(3)
     set should contain only(dict.getIndex("val1"), dict.getIndex("val2"), dict.getIndex("val3"))
     new File(file).delete()
@@ -306,7 +306,7 @@ class FileUtilSpec extends FlatSpecLike with Matchers {
     dict.getIndex("fake1")
     dict.getIndex("val3")
     dict.getIndex("fake2")
-    val list = fileUtil.readIntegerListFromFile(file, dict)
+    val list = fileUtil.readIntegerListFromFile(file, Some(dict))
     list should be(Seq(dict.getIndex("val1"), dict.getIndex("val2"), dict.getIndex("val3")))
     new File(file).delete()
   }

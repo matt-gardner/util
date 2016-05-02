@@ -333,24 +333,45 @@ class FileUtil {
   }
 
   /**
-   * The file is assumed to be a series of lines, one string per line.  If the provided dictionary
-   * is null, we parse the string to an integer before adding it to a set.  Otherwise, we look up
-   * the string in the dictionary to convert the string to an integer.
+   * The file is assumed to be a series of lines, one string per line.  If there is no provided
+   * dictionary, we parse the string to an integer before adding it to a set.  Otherwise, we look
+   * up the string in the dictionary to convert the string to an integer.  If the string is not in
+   * the dictionary and dropOnDictMiss is true, we just ignore the line; if dropOnDictMiss is
+   * false, we crash.
    */
-  def readIntegerSetFromFile(filename: String, dict: Dictionary = null): Set[Int] = {
-    readIntegerListFromFile(filename, dict).toSet
+  def readIntegerSetFromFile(
+    filename: String,
+    dict: Option[Dictionary] = None,
+    dropOnDictMiss: Boolean = false
+  ): Set[Int] = {
+    readIntegerListFromFile(filename, dict, dropOnDictMiss).toSet
   }
 
   /**
-   * The file is assumed to be a series of lines, one string per line.  If the provided dictionary
-   * is null, we parse the string to an integer before adding it to a list.  Otherwise, we look up
-   * the string in the dictionary to convert the string to an integer.
+   * The file is assumed to be a series of lines, one string per line.  If there is no provided
+   * dictionary, we parse the string to an integer before adding it to a list.  Otherwise, we look
+   * up the string in the dictionary to convert the string to an integer.  If the string is not in
+   * the dictionary and dropOnDictMiss is true, we just ignore the line; if dropOnDictMiss is
+   * false, we crash.
    */
-  def readIntegerListFromFile(filename: String, dict: Dictionary = null): Seq[Int] = {
-    val f: String => Int = (line: String) => {
-      if (dict == null) line.toInt else dict.getIndex(line)
+  def readIntegerListFromFile(
+    filename: String,
+    dict: Option[Dictionary] = None,
+    dropOnDictMiss: Boolean = false
+  ): Seq[Int] = {
+    val f: String => Seq[Int] = (line: String) => {
+      dict match {
+        case None => Seq(line.toInt)
+        case Some(d) => {
+          if (dropOnDictMiss && !d.hasString(line)) {
+            Seq()
+          } else {
+            Seq(d.getIndex(line))
+          }
+        }
+      }
     }
-    mapLinesFromFile(filename, f)
+    flatMapLinesFromFile(filename, f)
   }
 
   def readDoubleListFromFile(filename: String): Seq[Double] = {

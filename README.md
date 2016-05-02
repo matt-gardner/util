@@ -30,6 +30,8 @@ run overlapping pipelines, this will still protect the bits that overlap.
 
 - Fixed some bugs in the pipeline code
 
+- Slight change in the API for reading sets and lists of integers from files
+
 ## Version 2.1
 
 - Added Travis CI and coveralls integration (as seen by the badges at the top of this README).
