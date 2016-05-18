@@ -21,7 +21,7 @@ screen (including computing metrics like MAP, and significance tests).
 
 # Change log
 
-## Version 2.2 (current snapshot)
+## Version 2.2
 
 - Added parallel execution of substeps in a pipeline, which required adding inProgressFiles.  Note
   that the inProgressFiles help you even if you aren't using parallel execution within a single sbt
