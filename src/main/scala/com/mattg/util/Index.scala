@@ -199,8 +199,9 @@ object ImmutableIndex {
       var index = 0
       var i = 0
       while (line.charAt(i) != '\t') {
-        index *= 10
-        index += line.charAt(i) - 48
+        // This is reading an ASCII digit and adding it as part of a base-10 integer to `index`.
+        index *= 10  // each additional character means what we've read so far is multiplied by 10
+        index += line.charAt(i) - 48  // this goes from an ASCII digit to an integer
         i += 1
       }
       i += 1
