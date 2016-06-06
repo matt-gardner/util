@@ -105,13 +105,17 @@ abstract class Step(val params: Option[JValue], fileUtil: FileUtil) {
       if (!fileUtil.fileExists(filename)) {
         println(s"Missing required file $filename; trying to create it")
         stepOption match {
-          case None => throw new IllegalStateException(s"No step given to produce required file $filename")
+          case None => throw new IllegalStateException(
+            s"No step given to produce required file $filename (required for step $name)"
+          )
           case Some(step) => {
             // Make sure that this step actually provides the file.  If it does, run its pipeline.
             if (step.outputs.contains(filename)) {
               step.runPipeline()
             } else {
-              throw new IllegalStateException(s"Given substep (${step.name}) does not produce correct file: $filename not in ${step.outputs}")
+              throw new IllegalStateException(
+                s"Given substep (${step.name}) does not produce correct file: $filename not in ${step.outputs}"
+              )
             }
           }
         }
