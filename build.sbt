@@ -22,6 +22,8 @@ libraryDependencies ++= Seq(
   "net.sf.trove4j" % "trove4j" % "2.0.2",
   // Scala utility libraries
   "org.json4s" %% "json4s-native" % "3.2.11",
+  "com.typesafe.scala-logging" %% "scala-logging" % "3.4.0",
+  "ch.qos.logback" %  "logback-classic" % "1.1.7",  // backend for scala-logging
   // Testing dependencies
   "junit" % "junit" % "4.12",
   "com.novocode" % "junit-interface" % "0.11" % "test",

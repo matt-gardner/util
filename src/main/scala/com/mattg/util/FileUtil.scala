@@ -26,6 +26,8 @@ import scala.collection.JavaConverters._
 import scala.io.Source
 import scala.util.matching.Regex
 
+import com.typesafe.scalalogging.LazyLogging
+
 /**
  * This class serves two main purposes:
  *  - It abstracts away a lot of file manipulation code so that I can use it in a number of
@@ -38,7 +40,7 @@ import scala.util.matching.Regex
  * deal to me right now, so they will stay as they are.  There's also some overlap - if this were
  * two classes, the one that does file manipulation would need to call the file system interface.
  */
-class FileUtil {
+class FileUtil extends LazyLogging {
   // When processing large files, how many lines should we do at a time?
   val _chunkSize = 16 * 1024
 
@@ -48,11 +50,11 @@ class FileUtil {
     // We don't want to just call logEvery with current.toString, because that would create a
     // string at every call, which is a total waste.  So we deal with a tiny amount of code
     // duplication for efficiency's sake.
-    if (current % logFrequency == 0) println(current)
+    if (current % logFrequency == 0) logger.info(current.toString)
   }
 
   def logEvery(logFrequency: Int, current: Int, toLog: String) {
-    if (current % logFrequency == 0) println(toLog)
+    if (current % logFrequency == 0) logger.info(toLog)
   }
 
   /**
@@ -246,7 +248,7 @@ class FileUtil {
     val f = (line: String) => {
       val fields = line.split("\t")
       if (fields.length != 2) {
-        println(s"Offending line: $line")
+        logger.error(s"Offending line: $line")
         throw new RuntimeException("readStringPairsFromReader called on file that didn't have two columns")
       }
       (fields(0), fields(1))
@@ -261,7 +263,7 @@ class FileUtil {
         if (skipErrors) {
           Seq[(String, String)]()
         } else {
-          println(s"Offending line: $line")
+          logger.error(s"Offending line: $line")
           throw new RuntimeException("readMapFromTsvFile called on file that didn't have two columns")
         }
       } else {
@@ -432,7 +434,7 @@ class FileUtil {
     // Setting up the watch service takes longer than touching and then deleting a few files, so
     // the test deadlocks here.  This return statement fixes those tests.
     if (!new File(filename).exists()) return
-    println(s"Waiting for file $filename to be deleted")
+    logger.info(s"Waiting for file $filename to be deleted")
     val key = watchService.take()
     for (event <- key.pollEvents.asScala) {
       if (filename.endsWith(event.context().toString())) return

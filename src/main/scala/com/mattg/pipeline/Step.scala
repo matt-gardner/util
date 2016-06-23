@@ -5,6 +5,8 @@ import com.mattg.util.FileUtil
 import org.json4s._
 import org.json4s.native.JsonMethods._
 
+import com.typesafe.scalalogging.LazyLogging
+
 /**
  * A Step is one piece of a pipeline designed to carry out some experiment workflow.  A Step
  * requires certain inputs, and it might know what other steps provide those inputs.  A Step also
@@ -39,7 +41,7 @@ import org.json4s.native.JsonMethods._
  * very lightweight - do NOT load any data or other resources in the constructor; if you want the
  * data to be a class variable, make sure it's a lazy val.
  */
-abstract class Step(val params: Option[JValue], fileUtil: FileUtil) {
+abstract class Step(val params: Option[JValue], fileUtil: FileUtil) extends LazyLogging {
 
   /**
    * Run the pipeline up to and including this step.  If there are required input files that are
@@ -95,7 +97,7 @@ abstract class Step(val params: Option[JValue], fileUtil: FileUtil) {
    * files, run substeps, and so on.
    */
   def _runPipeline() {
-    println(s"Running pipeline for step: $name")
+    logger.info(s"Running pipeline for step: $name")
     val _inputs = if (runSubstepsInParallel) inputs.par else inputs
     for (input <- _inputs) {
       // Putting this split directly into the for comprehension gives me a funny compiler warning
@@ -103,7 +105,7 @@ abstract class Step(val params: Option[JValue], fileUtil: FileUtil) {
       // it into the loop.
       val (filename, stepOption) = input
       if (!fileUtil.fileExists(filename)) {
-        println(s"Missing required file $filename; trying to create it")
+        logger.info(s"Missing required file $filename; trying to create it")
         stepOption match {
           case None => throw new IllegalStateException(
             s"No step given to produce required file $filename (required for step $name)"
@@ -120,7 +122,7 @@ abstract class Step(val params: Option[JValue], fileUtil: FileUtil) {
           }
         }
       } else {
-        println(s"Required file $filename already exists, checking parameters")
+        logger.info(s"Required file $filename already exists, checking parameters")
         stepOption match {
           case None => { }  // nothing to do here; this file was created outside of this pipeline
           case Some(step) => {
@@ -130,9 +132,9 @@ abstract class Step(val params: Option[JValue], fileUtil: FileUtil) {
                 // Make sure that the Step's parameters match the saved parameters for this file.
                 val savedParams = parse(fileUtil.readFileContents(step.paramFile))
                 if (!parametersMatch(savedParams, p)) {
-                  println(s"saved params: ${pretty(render(savedParams))}")
-                  println(s"params: ${pretty(render(p))}")
-                  println(s"diff: ${p diff savedParams}")
+                  logger.error(s"saved params: ${pretty(render(savedParams))}")
+                  logger.error(s"params: ${pretty(render(p))}")
+                  logger.error(s"diff: ${p diff savedParams}")
                   throw new IllegalStateException(s"Saved parameters for step ${step.name} don't match!")
                 }
               }
@@ -141,7 +143,7 @@ abstract class Step(val params: Option[JValue], fileUtil: FileUtil) {
         }
       }
     }
-    println(s"All prerequisites should now be present.  Running step: $name")
+    logger.info(s"All prerequisites should now be present.  Running step: $name")
     runStep()
   }
 

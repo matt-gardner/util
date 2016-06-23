@@ -12,12 +12,14 @@ import java.util.concurrent.atomic.AtomicInteger
 
 import gnu.trove.{TObjectIntHashMap => TMap}
 
+import com.typesafe.scalalogging.LazyLogging
+
 /**
  * A mapping from some object to integers, for any application where such a mapping is useful
  * (generally because working with integers is much faster and less memory-intensive than working
  * with objects).
  */
-trait Index[T >: Null] {
+trait Index[T >: Null] extends LazyLogging {
   def hasKey(key: T): Boolean
   def getIndex(key: T): Int
   def getKey(index: Int): T
@@ -66,7 +68,6 @@ trait Index[T >: Null] {
 
 class MutableConcurrentIndex[T >: Null](
   factory: ObjectParser[T],
-  verbose: Boolean = false,
   fileUtil: FileUtil = new FileUtil
 ) extends Index[T] {
   val map = new concurrent.TrieMap[T, Int]
@@ -91,9 +92,7 @@ class MutableConcurrentIndex[T >: Null](
         i
       }
       case None => {
-        if (verbose) {
-          System.out.println("Key not in index: " + key)
-        }
+        logger.debug("Key not in index: " + key)
         val new_i = nextIndex.getAndIncrement()
         val i_added_concurrently = map.putIfAbsent(key, new_i)
         i_added_concurrently match {
@@ -102,10 +101,8 @@ class MutableConcurrentIndex[T >: Null](
             j
           }
           case None => {
-            if (verbose) {
-              System.out.println(s"Key added to index at position ${new_i}: ${key}")
-              System.out.println(s"next index is ${nextIndex.get()}\n")
-            }
+            logger.debug(s"Key added to index at position ${new_i}: ${key}")
+            logger.debug(s"next index is ${nextIndex.get()}\n")
             reverse_map.put(new_i, key)
             new_i
           }
@@ -126,7 +123,7 @@ class MutableConcurrentIndex[T >: Null](
 
   override def getKey(index: Int): T = {
     val key = reverse_map.getOrElse(index, null)
-    if (verbose) println(s"Key for ${index}: ${key}\n")
+    logger.debug(s"Key for ${index}: ${key}\n")
     key
   }
 
