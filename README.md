@@ -21,6 +21,10 @@ screen (including computing metrics like MAP, and significance tests).
 
 # Change log
 
+## Version 2.2.1
+
+- Switched to using a real logging framework, instead of print statements.
+
 ## Version 2.2
 
 - Added parallel execution of substeps in a pipeline, which required adding inProgressFiles.  Note
