@@ -3,7 +3,7 @@ package com.mattg.util
 import org.scalatest._
 
 class IndexSpec extends FlatSpecLike with Matchers {
-  val index = new MutableConcurrentIndex[String](new StringParser(), false, new FileUtil());
+  val index = new MutableConcurrentIndex[String](new StringParser(), new FileUtil());
 
   "MutableConcurrentIndex.getIndex" should "insert if element isn't present" in {
     index.clear

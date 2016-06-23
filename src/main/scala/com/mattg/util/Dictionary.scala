@@ -11,9 +11,8 @@ trait Dictionary extends Index[String] {
 }
 
 class MutableConcurrentDictionary(
-  verbose: Boolean = false,
   fileUtil: FileUtil = new FileUtil
-) extends MutableConcurrentIndex[String](new StringParser, verbose, fileUtil) with Dictionary {
+) extends MutableConcurrentIndex[String](new StringParser, fileUtil) with Dictionary {
 }
 
 class ImmutableDictionary(

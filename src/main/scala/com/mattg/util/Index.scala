@@ -92,7 +92,7 @@ class MutableConcurrentIndex[T >: Null](
         i
       }
       case None => {
-        logger.debug("Key not in index: " + key)
+        logger.trace("Key not in index: " + key)
         val new_i = nextIndex.getAndIncrement()
         val i_added_concurrently = map.putIfAbsent(key, new_i)
         i_added_concurrently match {
@@ -101,8 +101,8 @@ class MutableConcurrentIndex[T >: Null](
             j
           }
           case None => {
-            logger.debug(s"Key added to index at position ${new_i}: ${key}")
-            logger.debug(s"next index is ${nextIndex.get()}\n")
+            logger.trace(s"Key added to index at position ${new_i}: ${key}")
+            logger.trace(s"next index is ${nextIndex.get()}\n")
             reverse_map.put(new_i, key)
             new_i
           }
@@ -123,7 +123,7 @@ class MutableConcurrentIndex[T >: Null](
 
   override def getKey(index: Int): T = {
     val key = reverse_map.getOrElse(index, null)
-    logger.debug(s"Key for ${index}: ${key}\n")
+    logger.trace(s"Key for ${index}: ${key}\n")
     key
   }
 
