@@ -40,6 +40,11 @@ import com.typesafe.scalalogging.LazyLogging
  * constructed, because of how the inputs() method works.  Make sure that your constructors are all
  * very lightweight - do NOT load any data or other resources in the constructor; if you want the
  * data to be a class variable, make sure it's a lazy val.
+ *
+ * TODO(matt): the problem with constructing all of the objects in the pipeline is that they might
+ * create large objects during their _runStep method, and might hold on to references to them,
+ * which then can't be garbage collected.  I need some kind of a cleanup method that tells a Step
+ * it's done and should free its large objects.
  */
 abstract class Step(val params: Option[JValue], fileUtil: FileUtil) extends LazyLogging {
 

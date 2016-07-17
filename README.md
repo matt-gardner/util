@@ -21,6 +21,11 @@ screen (including computing metrics like MAP, and significance tests).
 
 # Change log
 
+## Version 2.3
+
+- Added a SubprocessStep to the pipeline code, so that you can easily call out of scala with parts
+  of your pipeline.
+
 ## Version 2.2.1
 
 - Switched to using a real logging framework, instead of print statements.
