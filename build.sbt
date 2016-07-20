@@ -2,15 +2,13 @@ organization := "edu.cmu.ml.rtw"
 
 name := "matt-util"
 
-version := "2.3"
+version := "2.3.1"
 
-scalaVersion := "2.11.2"
+scalaVersion := "2.11.8"
 
 scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature")
 
 javacOptions ++= Seq("-Xlint:unchecked")
-
-crossScalaVersions := Seq("2.11.2", "2.10.3")
 
 libraryDependencies ++= Seq(
   // Java utility libraries (collections, option parsing, such things)

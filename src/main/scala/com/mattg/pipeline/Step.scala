@@ -46,7 +46,7 @@ import com.typesafe.scalalogging.LazyLogging
  * which then can't be garbage collected.  I need some kind of a cleanup method that tells a Step
  * it's done and should free its large objects.
  */
-abstract class Step(val params: Option[JValue], fileUtil: FileUtil) extends LazyLogging {
+abstract class Step(val loggedParams: Option[JValue], fileUtil: FileUtil) extends LazyLogging {
 
   /**
    * Run the pipeline up to and including this step.  If there are required input files that are
@@ -131,7 +131,7 @@ abstract class Step(val params: Option[JValue], fileUtil: FileUtil) extends Lazy
         stepOption match {
           case None => { }  // nothing to do here; this file was created outside of this pipeline
           case Some(step) => {
-            step.params match {
+            step.loggedParams match {
               case None => { }  // nothing to do here; there were no parameters for this step
               case Some(p) => {
                 // Make sure that the Step's parameters match the saved parameters for this file.
@@ -176,17 +176,14 @@ abstract class Step(val params: Option[JValue], fileUtil: FileUtil) extends Lazy
    * (abstract) method that actually does the computation.
    */
   def runStep() {
-    params match {
-      case None => { }
-      case Some(p) => {
-        fileUtil.mkdirsForFile(paramFile)
-        val normalized = p match {
-          case JNothing => JObject(List())
-          case jval => jval
-        }
-        fileUtil.writeContentsToFile(paramFile, pretty(render(normalized)))
+    loggedParams.foreach(params => {  // the foreach means we only log if loggedParams is not None
+      fileUtil.mkdirsForFile(paramFile)
+      val normalized = params match {
+        case JNothing => JObject(List())
+        case jval => jval
       }
-    }
+      fileUtil.writeContentsToFile(paramFile, pretty(render(normalized)))
+    })
     _runStep()
   }
 
