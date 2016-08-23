@@ -28,7 +28,8 @@ abstract class SubprocessStep(
 
   override def _runStep() {
     val commandToExecute = Seq(binary) ++ scriptFile.toSeq ++ arguments
-    logger.info(s"Starting subprocess with command: $commandToExecute")
+    val commandStr = commandToExecute.mkString(" ")
+    logger.info(s"Starting subprocess with command: $commandStr")
 
     val process = Process(commandToExecute)
     val exitCode = process.!
